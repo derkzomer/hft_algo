@@ -1,7 +1,8 @@
 import MySQLdb
-import uuid
 import time
 import config as cfg
+import uuid
+import itertools
 
 class db(object):
 
@@ -19,6 +20,21 @@ class db(object):
 		for row in self.cur.fetchall():
 			return row
 
+	def get_active_trade_count(self):
+		query = 'SELECT COUNT(*) FROM TradeTracker WHERE trade_status = "PENDING"'
+		self.cur.execute(query)
+		for row in self.cur.fetchall():
+			return row[0]
+
+	def get_active_trades(self):
+		query = 'SELECT * FROM TradeTracker WHERE trade_status = "PENDING"'
+		self.cur.execute(query)
+		desc = self.cur.description
+		column_names = [col[0] for col in desc]
+		data = [dict(itertools.izip(column_names, row)) for row in self.cur.fetchall()]
+
+		return data
+
 	def insert_new_price(self,data,exchange):
 		for d in data:
 			for key, value in d.iteritems():
@@ -26,9 +42,21 @@ class db(object):
 				result = self.cur.execute("INSERT INTO LastPrice (_ts,price,pair,exchange,previous_price) VALUES (%s,%s,%s,%s,%s);",(str(value["timestamp"]),str(value["price"]),value["pair"],exchange,previous_price))
 				self.db.commit()
 
-	def record_validation(self,trade_rule_uuid,decision,purchase_price,status):
-		u = uuid.uuid4()
-		result = self.cur.execute("INSERT INTO RuleValidations (uuid,_ts,trade_rule_uuid,decision,purchase_price,status) VALUES (%s,%s,%s,%s,%s,%s);",(u,str(time.time()),trade_rule_uuid,decision,purchase_price,status))
+	def record_validation(self,trade_rule_uuid,decision,purchase_price,status,uuid):
+		result = self.cur.execute("INSERT INTO RuleValidations (uuid,_ts,trade_rule_uuid,decision,purchase_price,status) VALUES (%s,%s,%s,%s,%s,%s);",(uuid,str(time.time()),trade_rule_uuid,decision,purchase_price,status))
+		self.db.commit()
+
+	def new_trade_tracker(self,validation_uuid,price,commission):
+		tracker_uuid = uuid.uuid4()
+		result = self.cur.execute("INSERT INTO TradeTracker (uuid,validation_uuid,round,purchase_price,commission) VALUES (%s,%s,%s,%s,%s);",(tracker_uuid,validation_uuid,0,price,commission))
+		self.db.commit()
+
+	def update_trade_tracker(self,validation_uuid,price,net,round):
+		self.cur.execute('UPDATE TradeTracker SET round_{r}_price = {p}, round_{r}_net = {n}, round = {r} WHERE validation_uuid = "{v}"'.format(v=validation_uuid, r=round, p=price, n=net))
+		self.db.commit()
+
+	def conclude_trade_tracker(self,validation_uuid,price,net,round):
+		self.cur.execute('UPDATE TradeTracker SET round_{r}_price = {p}, round_{r}_net = {n}, round = {r}, trade_net = {n}, trade_status = "COMPLETE" WHERE validation_uuid = "{v}"'.format(v=validation_uuid, r=round, p=price, n=net))
 		self.db.commit()
 
 	def calculate_price_change(self,pair,exchange):
