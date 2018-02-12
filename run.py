@@ -14,7 +14,7 @@ class crypto(object):
 
 	def __init__(self):
 		active_trades = db().get_active_trade_count();
-		concurrent_trades = 999#cfg.trade_config['concurrent_trades']
+		concurrent_trades = cfg.trade_config['concurrent_trades']
 
 		self.get_price()
 
