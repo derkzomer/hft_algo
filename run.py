@@ -97,7 +97,7 @@ class crypto(object):
 			net = (float(self.veneth['veneth_price']) / purchase_net_commission)-1
 			print net
 
-			if net > 0 or (round+1) == 5:
+			if net > 0 or (round+1) == 5 or net < cfg.trade_config['stop_loss_ratio']:
 				db().conclude_trade_tracker(validation_uuid,self.veneth['veneth_price'],net,round+1)
 			else:
 				db().update_trade_tracker(validation_uuid,self.veneth['veneth_price'],net,round+1)
