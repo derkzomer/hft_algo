@@ -68,8 +68,8 @@ class crypto(object):
 			if p == r['low']:
 				print 'Expected VENETH change: ' + str(r['average'])
 				
-				# trade_edge = r['average'] - cfg.trade_config['stdev'] * r['stdev']
-				trade_edge = 1
+				trade_edge = r['average'] - cfg.trade_config['stdev'] * r['stdev']
+				# trade_edge = 1
 				
 				print 'VENETH Trade Edge: ' + str(trade_edge)
 				if self.veneth['veneth_delta'] < trade_edge:
