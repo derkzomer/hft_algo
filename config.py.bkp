@@ -1,0 +1,22 @@
+# DB Config
+db_config = {
+	'host':'localhost',	
+	'user':'root',
+	'passwd':'',
+	'db':'trader'
+}
+
+# API Keys
+api_keys = {
+	'key':'KCl8UvtnFcrlEgpqiwJlA0dr2SM3DuhKHHxiRtHA8oe7yl0JZYqas8oN2XNK0Lfz',
+	'secret':'2wj46v8IAKpXoeigAmzfPg1VEjYi3oItNTeeNcEkDrK1HIev4nZHJr1Cd8tiJ5L0'
+}
+
+# Trade Settings
+trade_config = {
+	'concurrent_trades':1,
+	'trade_amount_btc':0.01,
+	'trade_rule_uuid':'',
+	'stop_loss_ratio':-0.01,
+	'pause_seconds_after_trade':600,
+}

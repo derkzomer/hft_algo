@@ -16,13 +16,12 @@ class crypto(object):
 	def __init__(self):
 		active_trades = db().get_active_trade_count();
 		concurrent_trades = cfg.trade_config['concurrent_trades']
-		time_since_last_trade = int(datetime.datetime.now().strftime('%s')) - int(db().time_of_last_trade().strftime('%s'))
 
 		self.get_price()
 
 		self.trade_checks()
 
-		if active_trades < concurrent_trades and time_since_last_trade > cfg.trade_config['pause_seconds_after_trade']:
+		if active_trades < concurrent_trades:
 			self.rules = self.get_trade_rules()
 			self.rule = json.loads(self.rules[2])
 			self.validate()

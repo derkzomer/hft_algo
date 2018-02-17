@@ -3,6 +3,7 @@ import time
 import config as cfg
 import uuid
 import itertools
+import datetime
 
 class db(object):
 
@@ -97,7 +98,8 @@ class db(object):
 	def time_of_last_trade(self):
 		self.cur.execute('SELECT max(created_at) FROM TradeTracker')
 		if self.cur.fetchone()[0]	> 0:
-			return self.cur.fetchone()[0]
+			print self.cur.fetchone()[0]
+			return self.cur.fetchone()[0].strftime('%s')
 		else:
 			return 100000
 
