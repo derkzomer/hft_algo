@@ -16,7 +16,9 @@ class crypto(object):
 	def __init__(self):
 		active_trades = db().get_active_trade_count();
 		concurrent_trades = cfg.trade_config['concurrent_trades']
-		time_since_last_trade = int(datetime.datetime.now().strftime('%s')) - int(db().time_of_last_trade().strftime('%s'))
+		time_of_last_trade = int(db().time_of_last_trade().strftime('%s'))
+		now = int(datetime.datetime.now().strftime('%s'))
+		time_since_last_trade = now - time_of_last_trade
 
 		self.get_price()
 
