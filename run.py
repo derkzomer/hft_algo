@@ -9,20 +9,20 @@ from ApiHandler import account_api
 import config as cfg
 import json
 import uuid
+import datetime
 
 class crypto(object):
 
 	def __init__(self):
 		active_trades = db().get_active_trade_count();
 		concurrent_trades = cfg.trade_config['concurrent_trades']
-		# time_of_last_trade = db().time_of_last_trade()
-		# time_since_last_trade = 
+		time_since_last_trade = int(datetime.datetime.now().strftime('%s')) - int(db().time_of_last_trade().strftime('%s'))
 
 		self.get_price()
 
 		self.trade_checks()
 
-		if active_trades < concurrent_trades:
+		if active_trades < concurrent_trades and time_since_last_trade > cfg.trade_config['pause_seconds_after_trade']:
 			self.rules = self.get_trade_rules()
 			self.rule = json.loads(self.rules[2])
 			self.validate()
@@ -69,8 +69,8 @@ class crypto(object):
 			if p == r['low']:
 				print 'Expected VENETH change: ' + str(r['average'])
 				
-				trade_edge = r['average'] - cfg.trade_config['stdev'] * r['stdev']
-				# trade_edge = 1
+				# trade_edge = r['average'] - cfg.trade_config['stdev'] * r['stdev']
+				trade_edge = 1
 				
 				print 'VENETH Trade Edge: ' + str(trade_edge)
 				if self.veneth['veneth_delta'] < trade_edge:
