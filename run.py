@@ -67,39 +67,44 @@ class crypto(object):
 			if p == r['low']:
 				print 'Expected VENETH change: ' + str(r['average'])
 				
-				trade_edge = r['average'] - 1.5 * r['stdev']
+				trade_edge = r['average'] - cfg.trade_config['stdev'] * r['stdev']
 				# trade_edge = 1
 				
 				print 'VENETH Trade Edge: ' + str(trade_edge)
 				if self.veneth['veneth_delta'] < trade_edge:
 					print "VENETH Recommendation: BUY"
+					amount = float(cfg.trade_config['trade_amount']) / float(self.veneth['veneth_price'])
+
 					db().record_validation(self.rules[0],"BUY",self.veneth['veneth_price'],"PENDING",validation_uuid)
-					order().record_order(self.veneth['veneth_price'],validation_uuid)
+					tracker_uuid = db().new_trade_tracker(self.veneth['veneth_price'],amount)
+					db().new_trade(tracker_uuid,self.veneth['veneth_price'],amount,"BUY",cfg.trade_config['commission'])
 				else:
 					db().record_validation(self.rules[0],"HOLD",self.veneth['veneth_price'],"COMPLETE",validation_uuid)
 					print 'VENETH Recommendation: HOLD'
 
 	def trade_checks(self):
 
-		trades = db().get_active_trades()
-		for trade in trades:
-			print trade
-			validation_uuid = trade['validation_uuid']
-			round = trade['round']
-			if round == 0:
-				last_price = trade['purchase_price']
-			else:
-				last_price = trade['round_'+str(round)+'_price']
+		tracker = db().get_active_trades()
+		for tr in tracker:
+			round = tr['round']
 
-			purchase_net_commission = (float(trade['purchase_price']) * (1+trade['commission']))
-			print purchase_net_commission
-			print float(self.veneth['veneth_price'])
-			net = (float(self.veneth['veneth_price']) / purchase_net_commission)-1
+			purchase_commission_absolute = float(tr['commission']) * float(tr['purchase_price'])
+			purchase_net_commission = float(tr['purchase_price']) + purchase_commission_absolute
+
+			sale_commission_absolute = float(tr['commission']) * float(self.veneth['veneth_price'])
+			sale_net_commission = float(self.veneth['veneth_price']) - sale_commission_absolute
+
+			# purchase_net_commission = (float(tr['purchase_price']) * (1+tr['commission']))
+
+			net = sale_net_commission - purchase_net_commission
 			print net
 
-			if net > 0 or (round+1) == 5 or net < cfg.trade_config['stop_loss_ratio']:
-				db().conclude_trade_tracker(validation_uuid,self.veneth['veneth_price'],net,round+1)
+			if net > 0 or (round+1) == cfg.trade_config['rounds'] or net < cfg.trade_config['stop_loss_ratio']:
+				db().trade_validation(tr['uuid'],round+1,self.veneth['veneth_price'],tr['amount'],net,"SELL")
+				db().conclude_trade_tracker(tr['uuid'],self.veneth['veneth_price'],net,round+1)
+				db().new_trade(tr['uuid'],self.veneth['veneth_price'],tr['amount'],"SELL",cfg.trade_config['commission'])
 			else:
-				db().update_trade_tracker(validation_uuid,self.veneth['veneth_price'],net,round+1)
+				db().trade_validation(tr['uuid'],round+1,self.veneth['veneth_price'],tr['amount'],net,"HOLD")
+				db().update_trade_tracker(tr['uuid'],self.veneth['veneth_price'],net,round+1)
 
 crypto()
