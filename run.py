@@ -15,6 +15,8 @@ class crypto(object):
 	def __init__(self):
 		active_trades = db().get_active_trade_count();
 		concurrent_trades = cfg.trade_config['concurrent_trades']
+		# time_of_last_trade = db().time_of_last_trade()
+		# time_since_last_trade = 
 
 		self.get_price()
 
@@ -97,9 +99,12 @@ class crypto(object):
 			# purchase_net_commission = (float(tr['purchase_price']) * (1+tr['commission']))
 
 			net = sale_net_commission - purchase_net_commission
+			stop_loss_amount = cfg.trade_config['stop_loss_ratio'] * net
+			print "stop_loss_amount: " + str(stop_loss_amount)
+
 			print net
 
-			if net > 0 or (round+1) == cfg.trade_config['rounds'] or net < cfg.trade_config['stop_loss_ratio']:
+			if net > 0 or (round+1) == cfg.trade_config['rounds'] or net < stop_loss_amount:
 				db().trade_validation(tr['uuid'],round+1,self.veneth['veneth_price'],tr['amount'],net,"SELL")
 				db().conclude_trade_tracker(tr['uuid'],self.veneth['veneth_price'],net,round+1)
 				db().new_trade(tr['uuid'],self.veneth['veneth_price'],tr['amount'],"SELL",cfg.trade_config['commission'])

@@ -94,6 +94,11 @@ class db(object):
 		self.cur.execute('SELECT price FROM LastPrice WHERE id = ( SELECT max(id) FROM LastPrice WHERE 1=1 AND pair = "{p}" AND exchange = "{e}") AND pair = "{p}" AND exchange = "{e}";'.format(p=pair, e=exchange))
 		return self.cur.fetchone()[0]
 
+	def time_of_last_trade(self):
+		# print 'SELECT price FROM LastPrice WHERE id = ( SELECT max(id) FROM LastPrice WHERE 1=1 AND pair = "{p}" AND exchange = "{e}") AND pair = "{p}" AND exchange = "{e}";'.format(p=pair, e=exchange)
+		self.cur.execute('SELECT max(created_at) FROM TradeTracker')
+		return self.cur.fetchone()[0]		
+
 	def close(self):
 		self.db.close()
 
