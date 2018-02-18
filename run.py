@@ -98,12 +98,12 @@ class crypto(object):
 			# purchase_net_commission = (float(tr['purchase_price']) * (1+tr['commission']))
 
 			net = sale_net_commission - purchase_net_commission
-			stop_loss_amount = purchase_net_commission - (cfg.trade_config['stop_loss_ratio'] * net)
+			stop_loss_amount = cfg.trade_config['stop_loss_ratio'] * purchase_net_commission
 
-			# print 'net: ' + str(net)
-			# print 'stop loss: ' + str(stop_loss_amount)
+			print 'net: ' + str(net)
+			print 'stop loss: ' + str(stop_loss_amount)
 
-			if net > 0 or (round+1) == cfg.trade_config['rounds']:
+			if net > 0 or (round+1) == cfg.trade_config['rounds'] or net < stop_loss_amount:
 				db().trade_validation(tr['uuid'],round+1,self.veneth['veneth_price'],tr['amount'],net,"SELL")
 				db().conclude_trade_tracker(tr['uuid'],self.veneth['veneth_price'],net,round+1)
 				db().new_trade(tr['uuid'],self.veneth['veneth_price'],tr['amount'],"SELL",cfg.trade_config['commission'])
